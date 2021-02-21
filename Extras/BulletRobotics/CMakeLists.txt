@@ -58,7 +58,7 @@ SET(BulletRobotics_INCLUDES
   ../../examples/Utils/b3ResourcePath.h
   ../../examples/Utils/ChromeTraceUtil.h
   ../../examples/Utils/b3ERPCFMHelper.hpp
-  ../../examples/Utils/b3ReferenceFrameHelper.hpp  
+  ../../examples/Utils/b3ReferenceFrameHelper.hpp
 
   ../../examples/ThirdPartyLibs/tinyxml2/tinyxml2.h
   ../../examples/ThirdPartyLibs/Wavefront/tiny_obj_loader.h
@@ -87,7 +87,7 @@ SET(BulletRobotics_INCLUDES
   ../../examples/Importers/ImportURDFDemo/UrdfRenderingInterface.h
   ../../examples/Importers/ImportURDFDemo/MultiBodyCreationInterface.h
   ../../examples/Importers/ImportMeshUtility/b3ImportMeshUtility.h
-  
+
   ../../examples/MultiThreading/b3PosixThreadSupport.h
   ../../examples/MultiThreading/b3Win32ThreadSupport.h
   ../../examples/MultiThreading/b3ThreadSupportInterface.h
@@ -151,7 +151,7 @@ SET(BulletRobotics_SRCS ${BulletRobotics_INCLUDES}
 		../../examples/Importers/ImportURDFDemo/URDF2Bullet.cpp
 		../../examples/Importers/ImportURDFDemo/UrdfParser.cpp
 		../../examples/Importers/ImportURDFDemo/urdfStringSplit.cpp
-		../../examples/Importers/ImportMeshUtility/b3ImportMeshUtility.cpp 
+		../../examples/Importers/ImportMeshUtility/b3ImportMeshUtility.cpp
 
 		../../examples/MultiThreading/b3PosixThreadSupport.cpp
 		../../examples/MultiThreading/b3Win32ThreadSupport.cpp
@@ -175,10 +175,10 @@ ELSE(WIN32)
 		ADD_DEFINITIONS(-DHAS_SOCKLEN_T -DBT_ENABLE_ENET)
 	ENDIF(BUILD_ENET)
 
-	IF(BUILD_CLSOCKET)	
+	IF(BUILD_CLSOCKET)
 		ADD_DEFINITIONS(${OSDEF})
 	ENDIF(BUILD_CLSOCKET)
-		
+
 	IF(NOT APPLE)
 		FIND_PACKAGE(Threads)
 		LINK_LIBRARIES( ${CMAKE_THREAD_LIBS_INIT} ${DL} )
@@ -186,8 +186,8 @@ ELSE(WIN32)
 ENDIF(WIN32)
 
 IF(BUILD_ENET)
-  set(BulletRobotics_ENET_INCLUDES 
-    ../../examples/SharedMemory/PhysicsClientUDP.h		
+  set(BulletRobotics_ENET_INCLUDES
+    ../../examples/SharedMemory/PhysicsClientUDP.h
     ../../examples/SharedMemory/PhysicsClientUDP_C_API.h
     ../../examples/ThirdPartyLibs/enet/include/enet/win32.h
 		../../examples/ThirdPartyLibs/enet/include/enet/unix.h
@@ -223,6 +223,13 @@ IF(BUILD_ENET)
 ENDIF(BUILD_ENET)
 
 IF(BUILD_CLSOCKET)
+  set(BulletRobotics_CLSOCKET_INCLUDES
+    ../../examples/SharedMemory/PhysicsClientTCP.h
+    ../../examples/SharedMemory/PhysicsClientTCP_C_API.h
+    ../../examples/ThirdPartyLibs/clsocket/src/SimpleSocket.h
+    ../../examples/ThirdPartyLibs/clsocket/src/ActiveSocket.h
+    ../../examples/ThirdPartyLibs/clsocket/src/PassiveSocket.h
+  )
   set(BulletRobotics_CLSOCKET_SRCS
     ../../examples/SharedMemory/PhysicsClientTCP.cpp
     ../../examples/SharedMemory/PhysicsClientTCP_C_API.cpp
@@ -245,27 +252,40 @@ ADD_LIBRARY(BulletRobotics ${BulletRobotics_SRCS})
 SET_TARGET_PROPERTIES(BulletRobotics PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(BulletRobotics PROPERTIES SOVERSION ${BULLET_VERSION})
 
-IF (BUILD_SHARED_LIBS)
-	TARGET_LINK_LIBRARIES(BulletRobotics BulletInverseDynamicsUtils BulletWorldImporter BulletFileLoader BulletSoftBody BulletDynamics BulletCollision BulletInverseDynamics LinearMath Bullet3Common)
-ENDIF (BUILD_SHARED_LIBS)
+TARGET_LINK_LIBRARIES(BulletRobotics BulletInverseDynamicsUtils BulletWorldImporter BulletFileLoader BulletSoftBody BulletDynamics BulletCollision BulletInverseDynamics LinearMath Bullet3Common)
 
-  
+IF (INSTALL_EXTRA_LIBS)
+	INSTALL(FILES
+      ../../examples/SharedMemory/PhysicsClientC_API.h
+      ../../examples/SharedMemory/PhysicsClientSharedMemory_C_API.h
+      ../../examples/SharedMemory/PhysicsClientSharedMemory2_C_API.h
+      ../../examples/SharedMemory/PhysicsDirectC_API.h
+      ../../examples/SharedMemory/PhysicsClientUDP_C_API.h
+      ../../examples/SharedMemory/PhysicsClientTCP_C_API.h
+      ../../examples/SharedMemory/SharedMemoryInProcessPhysicsC_API.h
+      ../../examples/SharedMemory/SharedMemoryPublic.h
+      ../../examples/SharedMemory/b3RobotSimulatorClientAPI_NoGUI.h
+      ../../examples/SharedMemory/b3RobotSimulatorClientAPI_NoDirect.h
+		DESTINATION include/bullet
+  )
 
-INSTALL (
-    DIRECTORY ${CMAKE_SOURCE_DIR}/examples/
-    DESTINATION include/bullet
-    FILES_MATCHING PATTERN "*.h*")
+ENDIF (INSTALL_EXTRA_LIBS)
+
+  INSTALL(FILES
+    ${BulletRobotics_INCLUDES}
+    DESTINATION include/bullet_robotics
+  )
 
 	INSTALL(TARGETS
 		BulletRobotics
-		LIBRARY DESTINATION lib${LIB_SUFFIX}
-		ARCHIVE DESTINATION lib${LIB_SUFFIX}
+		LIBRARY DESTINATION ${BULLET_INSTALL_LIBDIR}
+		ARCHIVE DESTINATION ${BULLET_INSTALL_LIBDIR}
 	)
-		
+
   IF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
     SET_TARGET_PROPERTIES(BulletRobotics  PROPERTIES FRAMEWORK true)
     SET_TARGET_PROPERTIES(BulletRobotics PROPERTIES PUBLIC_HEADER "PhysicsClientC_API.h" )
-  ENDIF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)	
+  ENDIF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 
 IF(NOT MSVC)
     CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/bullet_robotics.pc.cmake
